@@ -1,5 +1,3 @@
-use std::env;
-
 use advent_of_code_2024::read_input;
 
 fn parse_input(input: &str) -> (Vec<i32>, Vec<i32>) {
@@ -24,7 +22,7 @@ fn part1(input: &str) -> i32 {
 }
 
 fn part2(input: &str) -> i32 {
-    let (mut left, mut right) = parse_input(input);
+    let (left, right) = parse_input(input);
     left.iter()
         .map(|lval| *lval * (right.iter().filter(|rval| **rval == *lval).count() as i32))
         .sum()
