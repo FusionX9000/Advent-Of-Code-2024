@@ -1,17 +1,15 @@
-use std::fmt::{Debug, Display};
-
 use advent_of_code_2024::read_input;
 
-fn parse_input<T>(input: &str) {
+fn parse_input(input: &str) {
     todo!()
 }
 
-fn part1(input: &str) -> (impl Display + Eq + Debug) {
-    ""
+fn part1(input: &str) -> String {
+    String::new()
 }
 
-fn part2(input: &str) -> (impl Display + Eq + Debug) {
-    ""
+fn part2(input: &str) -> String {
+    String::new()
 }
 
 fn main() -> Result<(), std::io::Error> {
@@ -30,13 +28,14 @@ mod tests {
     #[test]
     fn test_part1() {
         let input = "";
-        assert_eq!(part1(input), todo!());
+        assert_eq!("", part1(input));
     }
 
     #[test]
+    #[ignore]
     fn test_part2() {
         let input = "";
 
-        assert_eq!(part2(input), todo!());
+        assert_eq!("", part2(input));
     }
 }

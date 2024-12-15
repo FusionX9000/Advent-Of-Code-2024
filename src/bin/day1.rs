@@ -49,7 +49,7 @@ mod tests {
 1   3
 3   9
 3   3";
-        assert_eq!(part1(input), 11);
+        assert_eq!(11, part1(input));
     }
 
     #[test]
@@ -61,6 +61,6 @@ mod tests {
 3   9
 3   3";
 
-        assert_eq!(part2(input), 31);
+        assert_eq!(31, part2(input));
     }
 }
