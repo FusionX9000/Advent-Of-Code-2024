@@ -70,71 +70,12 @@ impl PartialOrd for Block {
     }
 }
 
-fn part2_brute(input: &str) -> String {
-    let input = parse_input(input);
-    let mut blocks: Vec<Block> = Vec::new();
-    let mut pos = 0;
-
-    for (i, &b) in input.iter().enumerate() {
-        if i % 2 == 0 {
-            blocks.push(Block {
-                id: (i as i64) / 2,
-                pos,
-                size: b,
-            });
-        }
-        pos += b;
-    }
-
-    let mut ans = 0;
-
-    let mut final_blocks: Vec<Block> = Vec::new();
-    while blocks.len() > 1 {
-        // println!("{:?}", blocks);
-        let &block = blocks.last().unwrap();
-        let mut npos = block.pos;
-        let mut flag = false;
-        for i in 1..blocks.len() {
-            let a = blocks[i - 1].pos + blocks[i - 1].size;
-            let b = blocks[i].pos;
-            let free_space = b - a;
-            if free_space >= block.size {
-                blocks.insert(
-                    i,
-                    Block {
-                        id: block.id,
-                        pos: a,
-                        size: block.size,
-                    },
-                );
-                npos = a;
-                flag = true;
-                blocks.pop();
-                break;
-            }
-        }
-        // println!("{:?}", flag);
-        if !flag {
-            blocks.pop();
-            final_blocks.push(Block {
-                id: block.id,
-                pos: npos,
-                size: block.size,
-            });
-            for j in npos..(npos + block.size) {
-                ans += block.id * j;
-            }
-        } else {
-        }
-    }
-    ans.to_string()
-}
-
 // O(N log N)
 fn part2(input: &str) -> String {
     let input = parse_input(input);
 
-    let mut pqs: Vec<BinaryHeap<Reverse<Block>>> = vec![BinaryHeap::new(); 11];
+    let mut pqs: [BinaryHeap<Reverse<Block>>; 11] = [const { BinaryHeap::new() }; 11];
+
     let blocks: Vec<Block> = input
         .clone()
         .iter()
@@ -205,10 +146,7 @@ fn part2(input: &str) -> String {
             size: ublock.size,
         });
 
-        let a_i = new_pos;
-        let a_n = new_pos + ublock.size - 1;
-        let n = ublock.size;
-        let val = asum(a_i, a_n, n) * id;
+        let val = asum(new_pos, new_pos + ublock.size - 1, ublock.size) * id;
         ans += val;
     }
     ans.to_string()
@@ -216,14 +154,13 @@ fn part2(input: &str) -> String {
 
 fn main() -> Result<(), std::io::Error> {
     let input = read_input("day9")?;
-    println!("{}", part1(&input));
+    let before = std::time::Instant::now();
+    println!("Part 1: {}", part1(&input));
+    println!("Time taken : {:?}", before.elapsed());
 
     let before = std::time::Instant::now();
-    println!("{}", part2(&input));
-    println!("Time: {:?}", before.elapsed());
-    let before = std::time::Instant::now();
-    println!("{}", part2_brute(&input));
-    println!("Time: {:?}", before.elapsed());
+    println!("Part 2: {}", part2(&input));
+    println!("Time taken : {:?}", before.elapsed());
 
     Ok(())
 }
@@ -244,12 +181,5 @@ mod tests {
         let input = "2333133121414131402";
 
         assert_eq!("2858", part2(input));
-    }
-
-    #[test]
-    fn test_part2_1() {
-        let input = "2333133121414131402";
-
-        assert_eq!("2858", part2_brute(input));
     }
 }
