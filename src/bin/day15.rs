@@ -82,60 +82,57 @@ fn part1(input: &str) -> String {
     ans.to_string()
 }
 
-fn move_vertical(grid: &mut Vec<Vec<u8>>, dir: i64, r: usize, c: usize, side_visited: bool) {
-    if grid[r][c] == b'#' || grid[r][c] == b'.' {
-        return;
-    }
-    if (grid[r][c] == b'[' || grid[r][c] == b']') && !side_visited {
-        let nc = if grid[r][c] == b'[' { c + 1 } else { c - 1 };
-        move_vertical(grid, dir, r, nc, true);
-    }
-    let nr = (r as i64 + dir) as usize;
-    move_vertical(grid, dir, nr, c, false);
-    grid[nr][c] = grid[r][c];
-    grid[r][c] = b'.';
-}
-
 fn check_vertical(
     grid: &mut Vec<Vec<u8>>,
     dir: i64,
     r: usize,
     c: usize,
-    side_visited: bool,
-) -> bool {
+    visited: &mut Vec<Vec<bool>>,
+) -> Option<Vec<(usize, usize)>> {
     if grid[r][c] == b'#' {
-        return false;
-    } else if grid[r][c] == b'.' {
-        return true;
+        return None;
+    } else if grid[r][c] == b'.' || visited[r][c] {
+        return Some(vec![]);
     }
-    if (grid[r][c] == b'[' || grid[r][c] == b']') && !side_visited {
+    println!("{r},{c}");
+    visited[r][c] = true;
+    let mut vec = Vec::new();
+    if grid[r][c] == b'[' || grid[r][c] == b']' {
         let nc = if grid[r][c] == b'[' { c + 1 } else { c - 1 };
-        if !check_vertical(grid, dir, r, nc, true) {
-            return false;
+        if !visited[r][nc] {
+            if let Some(v) = check_vertical(grid, dir, r, nc, visited) {
+                vec.extend(v);
+            } else {
+                return None;
+            }
         }
     }
     let nr = (r as i64 + dir) as usize;
-    return check_vertical(grid, dir, nr, c, false);
-}
-
-fn move_horizontal(grid: &mut Vec<Vec<u8>>, dir: i64, r: usize, c: usize) {
-    if grid[r][c] == b'#' || grid[r][c] == b'.' {
-        return;
+    if let Some(v) = check_vertical(grid, dir, nr, c, visited) {
+        vec.extend(v);
+        vec.push((r, c));
+        return Some(vec);
     }
-    let nc = (c as i64 + dir) as usize;
-    move_horizontal(grid, dir, r, nc);
-    grid[r][nc] = grid[r][c];
-    grid[r][c] = b'.';
+    None
 }
 
-fn check_horizontal(grid: &mut Vec<Vec<u8>>, dir: i64, r: usize, c: usize) -> bool {
+fn check_horizontal(
+    grid: &mut Vec<Vec<u8>>,
+    dir: i64,
+    r: usize,
+    c: usize,
+) -> Option<Vec<(usize, usize)>> {
     if grid[r][c] == b'#' {
-        return false;
+        return None;
     } else if grid[r][c] == b'.' {
-        return true;
+        return Some(vec![]);
     }
     let nc = (c as i64 + dir) as usize;
-    check_horizontal(grid, dir, r, nc)
+    if let Some(mut v) = check_horizontal(grid, dir, r, nc) {
+        v.push((r, c));
+        return Some(v);
+    }
+    None
 }
 
 // Simulate as-is. Use DFS to move connected components (if possible).
@@ -167,14 +164,21 @@ fn part2(input: &str) -> String {
     for d in directions {
         if d.0 != 0 {
             let nri = (ri as i64 + d.0) as usize;
-            if check_vertical(&mut grid, d.0, nri, rj, false) {
-                move_vertical(&mut grid, d.0, nri, rj, false);
+            let mut visited = vec![vec![false; grid[0].len()]; grid.len()];
+            if let Some(v) = check_vertical(&mut grid, d.0, nri, rj, &mut visited) {
+                for (r, c) in v {
+                    grid[(r as i64 + d.0) as usize][c] = grid[r][c];
+                    grid[r][c] = b'.';
+                }
                 ri = nri;
             }
         } else {
             let nrj = (rj as i64 + d.1) as usize;
-            if check_horizontal(&mut grid, d.1, ri, nrj) {
-                move_horizontal(&mut grid, d.1, ri, nrj);
+            if let Some(v) = check_horizontal(&mut grid, d.1, ri, nrj) {
+                for (r, c) in v {
+                    grid[r][(c as i64 + d.1) as usize] = grid[r][c];
+                    grid[r][c] = b'.';
+                }
                 rj = nrj;
             }
         }
@@ -247,7 +251,7 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^";
     }
 
     #[test]
-    fn test_part2() {
+    fn test_part2_1() {
         let input = "##########
 #..O..O.O#
 #......O.#
