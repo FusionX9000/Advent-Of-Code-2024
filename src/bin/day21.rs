@@ -1,19 +1,13 @@
+use std::{collections::HashMap, iter::repeat};
+
 use advent_of_code_2024::read_input;
+use itertools::Itertools;
 
 fn parse_input(input: &str) -> Vec<Vec<u8>> {
     input.lines().map(|l| l.as_bytes().to_vec()).collect()
 }
 
 type Point = (usize, usize);
-
-const NUMERIC_KEYPAD: [[u8; 3]; 4] = [
-    [b'7', b'8', b'9'],
-    [b'4', b'5', b'6'],
-    [b'1', b'2', b'3'],
-    [b'#', b'0', b'A'],
-];
-
-const DIRECTIONAL_KEYPAD: [[u8; 3]; 2] = [[b'#', b'^', b'A'], [b'<', b'v', b'>']];
 
 #[derive(Clone, Copy, Debug)]
 enum Keypad {
@@ -22,6 +16,15 @@ enum Keypad {
 }
 
 impl Keypad {
+    const NUMERIC_KEYPAD: [[u8; 3]; 4] = [
+        [b'7', b'8', b'9'],
+        [b'4', b'5', b'6'],
+        [b'1', b'2', b'3'],
+        [b'#', b'0', b'A'],
+    ];
+
+    const DIRECTIONAL_KEYPAD: [[u8; 3]; 2] = [[b'#', b'^', b'A'], [b'<', b'v', b'>']];
+
     fn start_pos(&self) -> Point {
         match self {
             Keypad::Directional => (0, 2),
@@ -36,8 +39,8 @@ impl Keypad {
     }
     fn array(&self) -> &[[u8; 3]] {
         match self {
-            Keypad::Directional => &DIRECTIONAL_KEYPAD,
-            Keypad::Numeric => &NUMERIC_KEYPAD,
+            Keypad::Directional => &Self::DIRECTIONAL_KEYPAD,
+            Keypad::Numeric => &Self::NUMERIC_KEYPAD,
         }
     }
     fn position(&self, search_val: u8) -> Point {
@@ -51,97 +54,112 @@ impl Keypad {
         }
         (0, 0)
     }
+    fn get_dir(ch: u8) -> (i64, i64) {
+        let chars = [b'>', b'<', b'^', b'v'];
+        let dirs = [(0, 1), (0, -1), (-1, 0), (1, 0)];
+        let i = chars.iter().position(|x| *x == ch).unwrap();
+        dirs[i]
+    }
 }
 
-fn dfs(pos: Point, keypad: Keypad, times: usize, code: &[u8], running: &mut Vec<u8>) -> usize {
-    match keypad {
-        Keypad::Numeric => {
-            if code.is_empty() {
-                return dfs(
-                    Keypad::Directional.start_pos(),
-                    Keypad::Directional,
-                    2,
-                    running,
-                    &mut Vec::new(),
-                );
+fn gen_path(start: Point, end: Point, keypad: Keypad) -> Vec<Vec<u8>> {
+    fn is_invalid_code(code: &[u8], start: Point, keypad: Keypad) -> bool {
+        let mut pos = start;
+        for &next_ch in code {
+            let dir = Keypad::get_dir(next_ch);
+            pos = (
+                (pos.0 as i64 + dir.0) as usize,
+                (pos.1 as i64 + dir.1) as usize,
+            );
+            if keypad.invalid_pos() == pos {
+                return false;
             }
         }
-        Keypad::Directional => {
-            if times == 0 {
-                return code.len();
-            }
-            if code.is_empty() {
-                return dfs(
-                    Keypad::Directional.start_pos(),
-                    Keypad::Directional,
-                    times - 1,
-                    running,
-                    &mut Vec::new(),
-                );
-            }
-        }
+        true
     }
 
-    let mut ans: usize = usize::MAX;
-    if pos == keypad.invalid_pos() {
-        return ans;
-    }
+    let (r_diff, c_diff) = (end.0 as i64 - start.0 as i64, end.1 as i64 - start.1 as i64);
 
-    let next_pos = keypad.position(code[0]);
-    if pos == next_pos {
-        running.push(b'A');
-        let ans = dfs(pos, keypad, times, &code[1..], running);
-        running.pop();
-        return ans;
-    }
+    let mut chars = Vec::new();
 
-    let r_diff = next_pos.0 as i64 - pos.0 as i64;
-    let c_diff = next_pos.1 as i64 - pos.1 as i64;
+    chars.extend(repeat(b'v').take(r_diff.max(0) as usize));
+    chars.extend(repeat(b'^').take((-r_diff).max(0) as usize));
+    chars.extend(repeat(b'>').take(c_diff.max(0) as usize));
+    chars.extend(repeat(b'<').take((-c_diff).max(0) as usize));
 
-    let (ch, npos) = match r_diff {
-        0 => (b'#', (0, 0)),
-        ..0 => (b'^', (pos.0 - 1, pos.1)),
-        1.. => (b'v', (pos.0 + 1, pos.1)),
-    };
-    if ch != b'#' {
-        running.push(ch);
-        ans = dfs(npos, keypad, times, code, running);
-        running.pop();
-    }
-
-    let (ch, npos) = match c_diff {
-        0 => (b'#', (0, 0)),
-        ..0 => (b'<', (pos.0, pos.1 - 1)),
-        1.. => (b'>', (pos.0, pos.1 + 1)),
-    };
-    if ch != b'#' {
-        running.push(ch);
-        ans = ans.min(dfs(npos, keypad, times, code, running));
-        running.pop();
-    }
-
-    ans
+    let len = chars.len();
+    chars
+        .into_iter()
+        .permutations(len)
+        .unique()
+        .filter(|perm| is_invalid_code(perm, start, keypad))
+        .map(|mut perm| {
+            perm.push(b'A');
+            perm
+        })
+        .collect::<Vec<Vec<u8>>>()
 }
 
-fn solve(code: &[u8]) -> usize {
-    let keypad = Keypad::Numeric;
-    dfs(keypad.start_pos(), keypad, 0, code, &mut Vec::new())
+fn u8_to_string(v: &[u8]) -> String {
+    v.iter().map(|v| *v as char).collect()
+}
+
+fn solve(keypad: Keypad, code: &[u8], times: u64, cache: &mut HashMap<(String, u64), u64>) -> u64 {
+    let mut times = times;
+    if matches!(keypad, Keypad::Directional) {
+        if times == 0 {
+            return code.len() as u64;
+        }
+        times -= 1;
+    }
+
+    let hash = (u8_to_string(code), times);
+    if let Some(v) = cache.get(&hash) {
+        return *v;
+    }
+
+    let mut pos = keypad.start_pos();
+    let mut cost = 0;
+
+    for ch_to in code {
+        let to = keypad.position(*ch_to);
+        let mut min_cost = u64::MAX;
+        for path in gen_path(pos, to, keypad) {
+            min_cost = min_cost.min(solve(Keypad::Directional, &path, times, cache))
+        }
+        pos = to;
+        assert_ne!(min_cost, u64::MAX);
+        cost += min_cost;
+    }
+
+    cache.insert(hash, cost);
+    cost
 }
 
 fn part1(input: &str) -> String {
     let codes = parse_input(input);
     let mut ans = 0usize;
+    let mut cache = HashMap::new();
     for code in codes {
-        let val = solve(&code);
+        let val = solve(Keypad::Numeric, &code, 2, &mut cache);
         let code_str = code.iter().map(|x| *x as char).collect::<String>();
         let code_int: usize = code_str[..code_str.len() - 1].parse().unwrap();
-        ans += val * code_int;
+        ans += val as usize * code_int;
     }
     ans.to_string()
 }
 
 fn part2(input: &str) -> String {
-    String::new()
+    let codes = parse_input(input);
+    let mut ans = 0usize;
+    let mut cache = HashMap::new();
+    for code in codes {
+        let val = solve(Keypad::Numeric, &code, 25, &mut cache);
+        let code_str = code.iter().map(|x| *x as char).collect::<String>();
+        let code_int: usize = code_str[..code_str.len() - 1].parse().unwrap();
+        ans += val as usize * code_int;
+    }
+    ans.to_string()
 }
 
 fn main() -> Result<(), std::io::Error> {
