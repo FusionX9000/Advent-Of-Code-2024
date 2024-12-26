@@ -25,21 +25,21 @@ fn concat(a: u64, b: u64) -> u64 {
         bb /= 10;
         digits += 1;
     }
-    let ans = a * (10 as u64).pow(digits) + b;
-    ans
+
+    a * 10_u64.pow(digits) + b
 }
 
 fn solveable(ref_value: u64, value: u64, nums: &[u64], third_op: bool) -> bool {
-    if value == ref_value && nums.len() == 0 {
+    if value == ref_value && nums.is_empty() {
         return true;
     }
-    if nums.len() == 0 || value > ref_value {
+    if nums.is_empty() || value > ref_value {
         return false;
     }
 
-    return solveable(ref_value, value + nums[0], &nums[1..], third_op)
+    solveable(ref_value, value + nums[0], &nums[1..], third_op)
         || solveable(ref_value, value * nums[0], &nums[1..], third_op)
-        || (third_op && solveable(ref_value, concat(value, nums[0]), &nums[1..], third_op));
+        || (third_op && solveable(ref_value, concat(value, nums[0]), &nums[1..], third_op))
 }
 
 fn part1(input: &str) -> String {

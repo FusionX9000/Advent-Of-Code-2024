@@ -27,7 +27,7 @@ fn parse_input(input: &str) -> (Vec<Vec<u8>>, Vec<(i64, i64)>) {
     (grid, directions)
 }
 
-fn get_robot_index(grid: &Vec<Vec<u8>>) -> (usize, usize) {
+fn get_robot_index(grid: &[Vec<u8>]) -> (usize, usize) {
     for i in 0..grid.len() {
         for j in 0..grid[0].len() {
             if grid[i][j] == b'@' {
@@ -115,7 +115,7 @@ fn check_vertical(
         }
     }
     let nr = (r as i64 + dir) as usize;
-    return check_vertical(grid, dir, nr, c, false);
+    check_vertical(grid, dir, nr, c, false)
 }
 
 fn move_horizontal(grid: &mut Vec<Vec<u8>>, dir: i64, r: usize, c: usize) {

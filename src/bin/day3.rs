@@ -5,10 +5,9 @@ fn parse_input(input: &str) -> Vec<String> {
     input.lines().map(String::from).collect()
 }
 
-fn get_valid_instructions_1(corr_memory: &String) -> Vec<(i64, i64)> {
+fn get_valid_instructions_1(corr_memory: &str) -> Vec<(i64, i64)> {
     let re = Regex::new("mul\\(([0-9]{1,3}),([0-9]{1,3})\\)").unwrap();
-    re.captures_iter(&corr_memory)
-        .into_iter()
+    re.captures_iter(corr_memory)
         .map(|capture| {
             let first = capture.get(1).unwrap().as_str();
             let second = capture.get(2).unwrap().as_str();
@@ -26,11 +25,10 @@ fn part1(input: &str) -> String {
         .to_string()
 }
 
-fn get_valid_instructions_2(corr_memory: &String) -> Vec<(i64, i64)> {
+fn get_valid_instructions_2(corr_memory: &str) -> Vec<(i64, i64)> {
     let re = Regex::new("(?:mul\\(([0-9]{1,3}),([0-9]{1,3})\\)|do\\(\\)|don't\\(\\))").unwrap();
     let mut flag = true;
-    re.captures_iter(&corr_memory)
-        .into_iter()
+    re.captures_iter(corr_memory)
         .map(|capture| {
             let capture_str = capture.get(0).unwrap().as_str();
             if capture_str == "do()" {

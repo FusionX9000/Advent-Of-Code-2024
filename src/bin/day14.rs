@@ -84,7 +84,7 @@ fn part1(input: &str) -> String {
     ans.to_string()
 }
 
-fn calc_variance(v: &Vec<(i64, i64)>, in_x: bool) -> f64 {
+fn calc_variance(v: &[(i64, i64)], in_x: bool) -> f64 {
     let n = v.len();
     let mut total = 0;
     for (x, y) in v.iter() {

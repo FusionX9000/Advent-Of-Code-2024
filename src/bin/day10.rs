@@ -21,10 +21,11 @@ fn trailheads(input: &[Vec<u32>], r: usize, c: usize, cache: &mut [i32]) -> u32 
         for (di, dj) in D {
             let i = r as i32 + di;
             let j = c as i32 + dj;
-            if (0..input.len() as i32).contains(&i) && (0..input[0].len() as i32).contains(&j) {
-                if input[i as usize][j as usize] == input[r][c] + 1 {
-                    ans += trailheads(input, i as usize, j as usize, cache)
-                }
+            if (0..input.len() as i32).contains(&i)
+                && (0..input[0].len() as i32).contains(&j)
+                && input[i as usize][j as usize] == input[r][c] + 1
+            {
+                ans += trailheads(input, i as usize, j as usize, cache)
             }
         }
     }

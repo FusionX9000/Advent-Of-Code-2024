@@ -1,5 +1,3 @@
-use std::{i32, usize};
-
 use advent_of_code_2024::read_input;
 use itertools::Itertools;
 
@@ -13,7 +11,7 @@ fn parse_input(input: &str) -> Vec<Vec<char>> {
 }
 
 // As per part 1, guard will always leave mapped area
-fn traverse_1(map_vec: &mut Vec<Vec<char>>, r: i32, c: i32, dir: usize) -> () {
+fn traverse_1(map_vec: &mut Vec<Vec<char>>, r: i32, c: i32, dir: usize) {
     if r < 0 || c < 0 || (r as usize) >= map_vec.len() || (c as usize) >= map_vec[0].len() {
         return;
     }
@@ -30,7 +28,7 @@ fn traverse_1(map_vec: &mut Vec<Vec<char>>, r: i32, c: i32, dir: usize) -> () {
     traverse_1(map_vec, r + DIRECTION[dir].0, c + DIRECTION[dir].1, dir);
 }
 
-fn guard_index(map_vec: &Vec<Vec<char>>) -> (usize, usize) {
+fn guard_index(map_vec: &[Vec<char>]) -> (usize, usize) {
     for r in 0..map_vec.len() {
         for c in 0..map_vec[0].len() {
             if map_vec[r][c] == '^' {
@@ -53,14 +51,14 @@ fn part1(input: &str) -> String {
         .to_string()
 }
 
-fn outside_bounds(pos: (i32, i32), map_vec: &Vec<Vec<char>>) -> bool {
+fn outside_bounds(pos: (i32, i32), map_vec: &[Vec<char>]) -> bool {
     !(pos.0 >= 0
         && pos.1 >= 0
         && (pos.0 as usize) < map_vec.len()
         && (pos.1 as usize) < map_vec[0].len())
 }
 
-fn is_blocked(pos: (i32, i32), map_vec: &Vec<Vec<char>>) -> bool {
+fn is_blocked(pos: (i32, i32), map_vec: &[Vec<char>]) -> bool {
     map_vec[pos.0 as usize][pos.1 as usize] == '#'
 }
 
@@ -71,7 +69,7 @@ fn next_pos(pos: (usize, usize), dir: usize) -> (i32, i32) {
     )
 }
 
-fn visited_2(cache: &Vec<Vec<u32>>, pos: (usize, usize), dir: usize) -> bool {
+fn visited_2(cache: &[Vec<u32>], pos: (usize, usize), dir: usize) -> bool {
     let curr_bitset = cache[pos.0][pos.1];
 
     let bitmask = 1 << dir;
@@ -79,7 +77,7 @@ fn visited_2(cache: &Vec<Vec<u32>>, pos: (usize, usize), dir: usize) -> bool {
     (curr_bitset & bitmask) > 0
 }
 
-fn set_bit(cache: &mut Vec<Vec<u32>>, pos: (usize, usize), dir: usize) {
+fn set_bit(cache: &mut [Vec<u32>], pos: (usize, usize), dir: usize) {
     let curr_bitset = cache[pos.0][pos.1];
 
     let bitmask = 1 << dir;
@@ -88,9 +86,8 @@ fn set_bit(cache: &mut Vec<Vec<u32>>, pos: (usize, usize), dir: usize) {
     cache[pos.0][pos.1] = bitset;
 }
 
-fn traverse_2(map_vec: &Vec<Vec<char>>, pos: (usize, usize)) -> bool {
+fn traverse_2(map_vec: &[Vec<char>], pos: (usize, usize)) -> bool {
     let mut cache: Vec<Vec<u32>> = (0..map_vec.len())
-        .into_iter()
         .map(|_| vec![0; map_vec[0].len()])
         .collect();
 

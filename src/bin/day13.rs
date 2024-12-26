@@ -63,11 +63,7 @@ fn solve_machine(m: &ClawMachine) -> i64 {
 
 fn part1(input: &str) -> String {
     let input: Vec<ClawMachine> = parse_input(input);
-    input
-        .iter()
-        .map(|m| solve_machine(m))
-        .sum::<i64>()
-        .to_string()
+    input.iter().map(solve_machine).sum::<i64>().to_string()
 }
 
 fn part2(input: &str) -> String {

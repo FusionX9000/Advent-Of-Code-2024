@@ -4,8 +4,7 @@ fn parse_input(input: &str) -> Vec<Vec<i32>> {
     input
         .lines()
         .map(|line| {
-            line.trim()
-                .split_whitespace()
+            line.split_whitespace()
                 .map(|x| x.parse().unwrap())
                 .collect()
         })
@@ -29,7 +28,7 @@ impl Order {
     }
 }
 
-fn is_safe_p1(report: &Vec<i32>) -> bool {
+fn is_safe_p1(report: &[i32]) -> bool {
     if report.len() <= 1 {
         return true;
     }
@@ -46,15 +45,19 @@ fn is_safe_p1(report: &Vec<i32>) -> bool {
 
 fn part1(input: &str) -> String {
     let input = parse_input(input);
-    input.into_iter().filter(is_safe_p1).count().to_string()
+    input
+        .into_iter()
+        .filter(|v| is_safe_p1(v))
+        .count()
+        .to_string()
 }
 
-fn is_safe_p2(report: &Vec<i32>) -> bool {
+fn is_safe_p2(report: &[i32]) -> bool {
     if is_safe_p1(report) {
         return true;
     }
     for i in 0..report.len() {
-        let mut new_report = report.clone();
+        let mut new_report = report.to_owned();
         new_report.remove(i);
         if is_safe_p1(&new_report) {
             return true;
@@ -66,7 +69,11 @@ fn is_safe_p2(report: &Vec<i32>) -> bool {
 // TODO - Optimise to O(N)
 fn part2(input: &str) -> String {
     let input = parse_input(input);
-    input.into_iter().filter(is_safe_p2).count().to_string()
+    input
+        .into_iter()
+        .filter(|v| is_safe_p2(v))
+        .count()
+        .to_string()
 }
 
 fn main() -> Result<(), std::io::Error> {

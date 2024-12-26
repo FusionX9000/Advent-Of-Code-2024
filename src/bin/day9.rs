@@ -10,7 +10,7 @@ fn parse_input(input: &str) -> Vec<i64> {
 }
 
 fn asum(a_1: i64, a_n: i64, n: i64) -> i64 {
-    (n as i64) * (a_1 as i64 + a_n as i64) / 2
+    n * (a_1 + a_n) / 2
 }
 
 // O(N)
@@ -117,11 +117,10 @@ fn part2(input: &str) -> String {
             if let Some(Reverse(free_block)) = pq.peek() {
                 if lowest_heap_idx.is_none() {
                     lowest_heap_idx = Some(j);
-                } else {
-                    if let Some(Reverse(lowest_pos_block)) = pqs[lowest_heap_idx.unwrap()].peek() {
-                        if free_block.pos < lowest_pos_block.pos {
-                            lowest_heap_idx = Some(j);
-                        }
+                } else if let Some(Reverse(lowest_pos_block)) = pqs[lowest_heap_idx.unwrap()].peek()
+                {
+                    if free_block.pos < lowest_pos_block.pos {
+                        lowest_heap_idx = Some(j);
                     }
                 }
             }

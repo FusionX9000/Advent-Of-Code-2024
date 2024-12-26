@@ -12,7 +12,7 @@ fn as_graph(input: &[Vec<u8>]) -> HashMap<u8, Vec<(i32, i32)>> {
     for (i, j) in (0..input.len()).cartesian_product(0..input[0].len()) {
         if input[i][j] != b'.' {
             hmap.entry(input[i][j])
-                .or_insert_with(|| Vec::new())
+                .or_insert_with(Vec::new)
                 .push((i as i32, j as i32));
         }
     }

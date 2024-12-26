@@ -2,7 +2,7 @@ use advent_of_code_2024::read_input;
 
 const D: [i32; 3] = [1, 0, -1];
 
-fn get_word_1(vec: &Vec<Vec<char>>, i: usize, j: usize, di: i32, dj: i32) -> Option<String> {
+fn get_word_1(vec: &[Vec<char>], i: usize, j: usize, di: i32, dj: i32) -> Option<String> {
     let max_r: i32 = vec.len().try_into().unwrap();
     let max_c: i32 = vec[0].len().try_into().unwrap();
 
@@ -26,7 +26,7 @@ fn get_word_1(vec: &Vec<Vec<char>>, i: usize, j: usize, di: i32, dj: i32) -> Opt
     }
 }
 
-fn count_1(vec: &Vec<Vec<char>>) -> u32 {
+fn count_1(vec: &[Vec<char>]) -> u32 {
     let mut count = 0;
     for i in 0..vec.len() {
         for j in 0..vec[0].len() {
@@ -53,7 +53,7 @@ fn part1(input: &str) -> String {
     count_1(&parse_input(input)).to_string()
 }
 
-fn count_2(vec: &Vec<Vec<char>>) -> u32 {
+fn count_2(vec: &[Vec<char>]) -> u32 {
     let mut count = 0;
     for i in 1..vec.len() - 1 {
         for j in 1..vec[0].len() - 1 {

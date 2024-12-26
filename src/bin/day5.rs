@@ -22,16 +22,16 @@ fn parse_input(input: &str) -> (Vec<(u32, u32)>, Vec<Vec<u32>>) {
     (order_vec, updates_vec)
 }
 
-fn create_graph(order_rules: &Vec<(u32, u32)>, update: &Vec<u32>) -> HashMap<u32, Vec<u32>> {
+fn create_graph(order_rules: &[(u32, u32)], update: &[u32]) -> HashMap<u32, Vec<u32>> {
     let mut graph: HashMap<u32, Vec<u32>> = HashMap::new();
 
-    let updates_set = update.iter().map(|n| *n).collect::<HashSet<u32>>();
+    let updates_set = update.iter().copied().collect::<HashSet<u32>>();
 
     for (l, r) in order_rules {
-        if !updates_set.contains(&l) || !updates_set.contains(&r) {
+        if !updates_set.contains(l) || !updates_set.contains(r) {
             continue;
         }
-        graph.entry(*l).or_insert(Vec::new()).push(*r);
+        graph.entry(*l).or_default().push(*r);
     }
     graph
 }
@@ -67,7 +67,7 @@ fn get_topological_order(graph: HashMap<u32, Vec<u32>>) -> Vec<u32> {
     output
 }
 
-fn valid_update(update: &Vec<u32>, topo: &Vec<u32>) -> bool {
+fn valid_update(update: &[u32], topo: &[u32]) -> bool {
     let mut prev = 0;
     update.iter().all(|node| {
         let idx = topo.iter().position(|x| x == node).unwrap();
