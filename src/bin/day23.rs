@@ -1,7 +1,8 @@
-use std::time::Instant;
-
 use advent_of_code_2024::read_input;
 use itertools::Itertools;
+use std::time::Instant;
+
+const MAX_NODES: usize = 26 * 26;
 
 fn parse_input(input: &str) -> Vec<(u32, u32)> {
     input
@@ -30,67 +31,55 @@ fn to_string(node: &u32) -> String {
 }
 
 fn part1(input: &str) -> String {
+    let starts_with_t = |n: u32| (n / 26) as u8 == b't' - b'a';
     let connections = parse_input(input);
-    let mut edges = vec![vec![false; 26 * 26]; 26 * 26];
+    let mut edges = vec![vec![false; MAX_NODES]; MAX_NODES];
     for edge in connections.iter() {
         edges[edge.0 as usize][edge.1 as usize] = true;
-        edges[edge.1 as usize][edge.0 as usize] = true;
     }
-
-    let interconnections: Vec<Vec<u32>> = connections.iter().map(|&c| vec![c.0, c.1]).collect();
-
-    let three_interconnections = get_next_interconnections(&interconnections, &edges);
-    three_interconnections
-        .into_iter()
-        .filter(|v| v.iter().any(|node| to_string(node).starts_with('t')))
-        .count()
-        .to_string()
+    let mut ans = 0;
+    for connection in connections {
+        for node_3 in (connection.1 as usize)..(MAX_NODES) {
+            if edges[connection.0 as usize][node_3]
+                && edges[connection.1 as usize][node_3]
+                && (starts_with_t(node_3 as u32)
+                    || starts_with_t(connection.0)
+                    || starts_with_t(connection.1))
+            {
+                ans += 1;
+            }
+        }
+    }
+    ans.to_string()
 }
 
 fn should_connect(edges: &[Vec<bool>], connected_component: &[u32], new_node: u32) -> bool {
-    for connected_node in connected_component.iter() {
-        if new_node == *connected_node || !edges[new_node as usize][*connected_node as usize] {
-            return false;
-        }
-    }
-    true
+    connected_component.iter().all(|connected_node| {
+        new_node != *connected_node && edges[*connected_node as usize][new_node as usize]
+    })
 }
 
-fn get_next_interconnections(interconnections: &[Vec<u32>], edges: &[Vec<bool>]) -> Vec<Vec<u32>> {
-    let mut next_interconnections = Vec::new();
+// Optimisation inspired by - https://www.reddit.com/r/adventofcode/comments/1hkgj5b/2024_day_23_solutions/m3fbw3t/
+fn part2(input: &str) -> String {
+    let connections = parse_input(input);
+    let mut edges = vec![vec![false; MAX_NODES]; MAX_NODES];
+    for edge in connections.iter() {
+        edges[edge.0 as usize][edge.1 as usize] = true;
+    }
 
-    for interconnection in interconnections.iter() {
-        for new_node in (*interconnection.last().unwrap())..(26 * 26) {
-            if should_connect(edges, interconnection, new_node) {
-                let mut next_connection = interconnection.clone();
-                next_connection.push(new_node);
-                next_interconnections.push(next_connection);
+    let mut interconnections: Vec<Vec<u32>> = connections.iter().map(|&c| vec![c.0, c.1]).collect();
+
+    for connection in interconnections.iter_mut() {
+        for node in *connection.last().unwrap()..(MAX_NODES as u32) {
+            if should_connect(&edges, connection, node) {
+                connection.push(node);
             }
         }
     }
 
-    next_interconnections
-}
-
-fn part2(input: &str) -> String {
-    let connections = parse_input(input);
-    let mut edges = vec![vec![false; 26 * 26]; 26 * 26];
-    for edge in connections.iter() {
-        edges[edge.0 as usize][edge.1 as usize] = true;
-        edges[edge.1 as usize][edge.0 as usize] = true;
-    }
-
-    let mut interconnections: Vec<Vec<u32>> = connections.iter().map(|&c| vec![c.0, c.1]).collect();
-    let mut next_interconnections: Vec<Vec<u32>> =
-        get_next_interconnections(&interconnections, &edges);
-
-    while !next_interconnections.is_empty() {
-        interconnections = next_interconnections;
-        next_interconnections = get_next_interconnections(&interconnections, &edges);
-    }
-
     interconnections
-        .first()
+        .iter()
+        .max_by(|a, b| a.len().cmp(&b.len()))
         .unwrap()
         .iter()
         .map(to_string)
